@@ -2,43 +2,56 @@ from rest_framework import  authentication, generics,mixins, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Products
+from api.mixins import StaffEdittorPermissionMixin, UserQuerySetMixin
 from .serializers import ProductsSerializer
 from django.shortcuts import get_object_or_404
 
 ####list apiview #####
 #### post ####
-class ProductListCreateAPIView(generics.ListCreateAPIView):
+class ProductListAPIView(generics.ListAPIView ):
    queryset = Products.objects.all()
    serializer_class = ProductsSerializer
-   authentication_classes = [authentication.SessionAuthentication]
-   permission_classes = [permissions.DjangoModelPermissions]
 
 
 
 #### get ####
-class ProductListAPIView(generics.ListAPIView):
+class ProductListCreateAPIView( UserQuerySetMixin,StaffEdittorPermissionMixin, generics.ListCreateAPIView):
    queryset = Products.objects.all()
    serializer_class = ProductsSerializer
 
-@api_view(['GET', 'POST'])
-def product_alt_view(request, pk=None, *args, **kwargs):
-   method = request.method
+   def perform_create(self,serializer):
+      # email = serializer.validated_data.pop('email') 
+      # print(email)
+      title = serializer.validated_data.get("title")
+      serializer.save(user=self.request.user)
+   # def get_queryset(self, *args, **kwargs):
+   #    qs = super().get_queryset(*args, **kwargs)
+   #    request = self.request
+   #    user = request.user
+   #    if not user.is_authenticated:
+   #       return Products.objects.none()
+   #    # print(request.user)
+   #    return qs.filter(user=request.user)
 
-   if method == "GET":
-      if pk is not None:
-         obj = get_object_or_404(Products, pk=pk)
-         data = ProductsSerializer(obj,many=False).data
-      queryset = Products.objects.all()
-      data = ProductsSerializer(queryset, many=True).data
-      return Response(data)
+# @api_view(['GET', 'POST'])
+# def product_alt_view(request, pk=None, *args, **kwargs):
+#    method = request.method
+
+#    if method == "GET":
+#       if pk is not None:
+#          obj = get_object_or_404(Products, pk=pk)
+#          data = ProductsSerializer(obj,many=False).data
+#       queryset = Products.objects.all()
+#       data = ProductsSerializer(queryset, many=True).data
+#       return Response(data)
    
-   if method == "POST":
-      serializer = ProductsSerializer(data = request.data)
-      if serializer.is_valid(raise_exception= True):
-         title = serializer.validated_data.get("title")
-         serializer.save()
-         return Response(serializer.data)
-      return Response({"invalid":"not good data"})
+#    if method == "POST":
+#       serializer = ProductsSerializer(data = request.data)
+#       if serializer.is_valid(raise_exception= True):
+#          title = serializer.validated_data.get("title")
+#          serializer.save()
+#          return Response(serializer.data)
+#       return Response({"invalid":"not good data"})
 
 ###### post ####
 # class ProductCreateAPIView(generics.CreateAPIView):
@@ -50,11 +63,11 @@ def product_alt_view(request, pk=None, *args, **kwargs):
 #       serializer.save()
 
 # ####### get ######
-class ProductDetailAPIView(generics.RetrieveAPIView):
+class ProductDetailAPIView(UserQuerySetMixin,StaffEdittorPermissionMixin, generics.RetrieveAPIView):
    queryset = Products.objects.all()
    serializer_class = ProductsSerializer 
-
-class ProductUpdateAPIView(generics.UpdateAPIView):
+ 
+class ProductUpdateAPIView(UserQuerySetMixin,StaffEdittorPermissionMixin, generics.UpdateAPIView):
    queryset = Products.objects.all()
    serializer_class = ProductsSerializer
    lookup_field = "pk"
@@ -64,11 +77,11 @@ class ProductUpdateAPIView(generics.UpdateAPIView):
       if not instance.content:
          instance.cotent = instance.title
 
-class ProductDeleteAPIView(generics.DestroyAPIView):
+class ProductDeleteAPIView(StaffEdittorPermissionMixin, generics.DestroyAPIView):
    queryset = Products.objects.all()
    serializer_class = ProductsSerializer
    lookup_field = "pk"
-
+ 
    def perform_destroy(self, instance):
       return super().perform_destroy(instance)
 ####################### MIXINS ########################

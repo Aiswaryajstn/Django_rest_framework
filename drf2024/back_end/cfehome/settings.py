@@ -25,6 +25,7 @@ SECRET_KEY = 'django-insecure-cau3&fe#b(3^&b6rlq_ofofkxkl4u_8ul23^))e+!b6&$cdtq=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1']
 ALLOWED_HOSTS = []
 
 
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'api',
     'products',
 ]
@@ -124,3 +126,18 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+
+   "DEFAULT_AUTHENTICATION_CLASSES" : [
+      "rest_framework.authentication.SessionAuthentication",
+      "api.authentication.TokenAuthentication"
+   ],
+   "DEFAULT_PERMISSION_CLASSES"     : [
+      "rest_framework.permissions.IsAuthenticatedOrReadOnly"
+   ],
+   'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+   'PAGE_SIZE': 10
+
+}
+ 
