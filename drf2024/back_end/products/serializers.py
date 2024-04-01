@@ -23,7 +23,8 @@ class ProductsSerializer(serializers.ModelSerializer):
          'title',
          'content',
          'price',
-         'sale_price'
+         'sale_price',
+         'public',
       ]
    title = serializers.CharField(validators=[validate_title])
    # def validate_title(self, value):
